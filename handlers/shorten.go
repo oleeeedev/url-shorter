@@ -12,14 +12,14 @@ import (
 
 var (
 	urlStore = make(map[string]models.URLData)
-	mux      sync.RWMutex
+	urlMux   sync.RWMutex
 )
 
 func ShortenURL(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		URL       string `json:"url"`
-		ExpiryIn  int    `json:"expiry_in"`  // Expiry time in minutes
-		CustomURL string `json:"custom_url"` // Optional custom short URL
+		ExpiryIn  int    `json:"expiry_in"`
+		CustomURL string `json:"custom_url"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -32,14 +32,14 @@ func ShortenURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expiry := time.Now().Add(time.Duration(request.ExpiryIn) * time.Minute)
-	mux.Lock()
+	urlMux.Lock()
 	if _, exists := urlStore[shortURL]; exists {
-		mux.Unlock()
+		urlMux.Unlock()
 		http.Error(w, "Custom URL already exists", http.StatusBadRequest)
 		return
 	}
 	urlStore[shortURL] = models.URLData{OriginalURL: request.URL, Expiry: expiry}
-	mux.Unlock()
+	urlMux.Unlock()
 
 	response := struct {
 		ShortURL string `json:"short_url"`

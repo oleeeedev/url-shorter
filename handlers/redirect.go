@@ -8,19 +8,19 @@ import (
 func RedirectURL(w http.ResponseWriter, r *http.Request) {
 	shortURL := r.URL.Path[1:]
 
-	mux.RLock()
+	urlMux.RLock()
 	data, exists := urlStore[shortURL]
-	mux.RUnlock()
+	urlMux.RUnlock()
 
 	if !exists || time.Now().After(data.Expiry) {
 		http.Error(w, "URL not found or expired", http.StatusNotFound)
 		return
 	}
 
-	mux.Lock()
+	urlMux.Lock()
 	data.AccessCount++
 	urlStore[shortURL] = data
-	mux.Unlock()
+	urlMux.Unlock()
 
 	http.Redirect(w, r, data.OriginalURL, http.StatusFound)
 }

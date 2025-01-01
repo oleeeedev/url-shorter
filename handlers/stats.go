@@ -9,9 +9,9 @@ import (
 func GetURLStats(w http.ResponseWriter, r *http.Request) {
 	shortURL := r.URL.Path[len("/stats/"):]
 
-	mux.RLock()
+	urlMux.RLock()
 	data, exists := urlStore[shortURL]
-	mux.RUnlock()
+	urlMux.RUnlock()
 
 	if !exists {
 		http.Error(w, "URL not found", http.StatusNotFound)
